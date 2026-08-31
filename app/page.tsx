@@ -47,7 +47,7 @@ export default function Home() {
           함께 바이브코딩 공부하는 방
         </p>
 
-        <Button className="mt-9 h-13 rounded-full px-7 text-base shadow-[0_12px_28px_rgb(180_78_45/22%)] sm:mt-11" size="lg" render={<a href="#about" />}>
+        <Button className="mt-9 h-13 rounded-full px-7 text-base shadow-[0_12px_28px_rgb(180_78_45/22%)] sm:mt-11" size="lg" nativeButton={false} render={<a href="#about" />}>
           둘러보기
           <ArrowDown className="ml-1 size-4" aria-hidden="true" />
         </Button>
