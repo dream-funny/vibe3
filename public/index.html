@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>바이브코딩 공부</title>
+    <meta name="description" content="함께 바이브코딩 공부하는 방" />
+    <meta property="og:title" content="바이브코딩 공부" />
+    <meta property="og:description" content="함께 바이브코딩 공부하는 방" />
+    <meta property="og:image" content="/og.png" />
+    <link rel="icon" href="/favicon.svg" />
+    <style>
+      :root { color-scheme: light; --bg:#fff8ee; --ink:#3d2921; --muted:#806b61; --brand:#b64f32; --soft:#f6dec1; --line:#ead4c2; }
+      * { box-sizing:border-box; }
+      html { scroll-behavior:smooth; }
+      body { margin:0; min-width:320px; color:var(--ink); background:var(--bg); font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,sans-serif; }
+      body::before,body::after { content:""; position:absolute; z-index:0; border-radius:50%; pointer-events:none; }
+      body::before { width:min(46rem,82vw); height:min(46rem,82vw); top:-26rem; left:-15rem; background:radial-gradient(circle,#e99a705f,transparent 68%); }
+      body::after { width:min(34rem,75vw); height:min(34rem,75vw); top:8rem; right:-17rem; background:radial-gradient(circle,#efc67366,transparent 68%); }
+      nav,section { position:relative; z-index:1; width:min(100% - 40px,1152px); margin-inline:auto; }
+      nav { display:flex; align-items:center; gap:10px; padding-block:24px; font-weight:750; }
+      .logo { display:grid; place-items:center; width:36px; height:36px; border-radius:12px; color:white; background:var(--brand); box-shadow:0 4px 12px #85432922; }
+      .hero { display:flex; flex-direction:column; align-items:center; padding:56px 0 80px; text-align:center; }
+      .eyebrow { margin:0 0 24px; padding:9px 16px; border:1px solid #b64f3226; border-radius:999px; color:var(--brand); background:#fffdf9cc; font-size:14px; font-weight:700; box-shadow:0 3px 12px #4e2b1910; }
+      h1 { margin:0; max-width:900px; font-size:clamp(54px,11vw,124px); font-weight:950; line-height:.92; letter-spacing:-.075em; }
+      h1 span { display:block; margin-top:10px; color:var(--brand); }
+      .tagline { margin:36px 0 0; color:var(--muted); font-size:clamp(18px,2vw,21px); line-height:1.7; }
+      .cta { display:inline-flex; align-items:center; gap:9px; margin-top:38px; padding:15px 28px; border-radius:999px; color:white; background:var(--brand); font-weight:750; text-decoration:none; box-shadow:0 12px 28px #b44e3738; transition:transform .2s,box-shadow .2s; }
+      .cta:hover { transform:translateY(-2px); box-shadow:0 15px 32px #b44e3745; }
+      .about { padding-bottom:48px; }
+      .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; padding:16px; border:1px solid var(--line); border-radius:32px; background:#fffdf9c7; box-shadow:0 24px 80px #74412a1a; }
+      article { min-height:224px; padding:28px; border:1px solid transparent; border-radius:24px; background:#fff9f0cc; transition:transform .25s,border-color .25s; }
+      article:hover { transform:translateY(-4px); border-color:#b64f321a; }
+      .card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:38px; }
+      .icon { display:grid; place-items:center; width:44px; height:44px; border-radius:16px; color:var(--brand); background:var(--soft); font-size:20px; }
+      .num { color:#9a867d99; font:12px ui-monospace,monospace; }
+      h2 { margin:0; font-size:18px; letter-spacing:-.02em; }
+      article p { margin:12px 0 0; color:var(--muted); font-size:14px; line-height:1.7; }
+      .welcome { margin:30px auto 0; max-width:600px; color:var(--muted); text-align:center; font-size:14px; line-height:1.7; }
+      @media (max-width:700px) { nav,section{width:min(100% - 32px,1152px)} .hero{padding:50px 0 72px} .cards{grid-template-columns:1fr;gap:12px;padding:12px} article{min-height:0;padding:24px}.card-top{margin-bottom:28px} }
+      @media (prefers-reduced-motion:reduce) { html{scroll-behavior:auto}.cta,article{transition:none} }
+    </style>
+  </head>
+  <body>
+    <nav aria-label="주요 메뉴"><span class="logo" aria-hidden="true">✦</span><span>바이브코딩 공부</span></nav>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">코딩이 궁금한 우리들의 따뜻한 공부방</p>
+        <h1>바이브코딩<span>공부</span></h1>
+        <p class="tagline">함께 바이브코딩 공부하는 방</p>
+        <a class="cta" href="#about">둘러보기 <span aria-hidden="true">↓</span></a>
+      </section>
+      <section class="about" id="about">
+        <div class="cards">
+          <article><div class="card-top"><span class="icon" aria-hidden="true">♡</span><span class="num">01</span></div><h2>혼자가 아니라 함께,</h2><p>막히는 순간도 질문하고 나누며 같이 답을 찾아가요.</p></article>
+          <article><div class="card-top"><span class="icon" aria-hidden="true">✦</span><span class="num">02</span></div><h2>아이디어를 바로 만들어보고,</h2><p>어렵게만 느껴졌던 코딩을 작은 결과물로 완성해봐요.</p></article>
+          <article><div class="card-top"><span class="icon" aria-hidden="true">☕</span><span class="num">03</span></div><h2>부담 없이 꾸준하게,</h2><p>각자의 속도를 존중하며 편안하게 배우고 성장해요.</p></article>
+        </div>
+        <p class="welcome">바이브 코딩에 관심이 있다면, 경험이나 실력에 관계없이 누구나 환영해요.</p>
+      </section>
+    </main>
+  </body>
+</html>
