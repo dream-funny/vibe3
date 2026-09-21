@@ -22,7 +22,7 @@
         <form id="item-form" novalidate>
           <div class="form-grid">
             <div class="field field-wide"><label for="title">제목 <span class="required" aria-hidden="true">*</span></label><input id="title" name="title" maxlength="100" required placeholder="작품 이름을 입력해 주세요" /></div>
-            <div class="field field-wide"><label for="cover-image">대표 이미지 <span class="required" aria-hidden="true">*</span></label><input class="file-input" id="cover-image" name="coverImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required /><p class="hint">JPG, PNG, WebP, GIF 파일을 5MB 이하로 첨부해 주세요.</p><img id="image-preview" class="image-preview" alt="선택한 대표 이미지 미리보기" /></div>
+            <div class="field field-wide"><label for="cover-image">대표 이미지 <span class="hint">(선택)</span></label><input class="file-input" id="cover-image" name="coverImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif" /><p class="hint">JPG, PNG, WebP, GIF 파일을 5MB 이하로 첨부해 주세요. 선택하지 않으면 기본 이미지가 사용돼요.</p><img id="image-preview" class="image-preview show" src="/og.png" alt="대표 이미지 미리보기" /></div>
             <div class="field field-wide"><label for="summary">요약 <span class="required" aria-hidden="true">*</span></label><input id="summary" name="summary" maxlength="200" required placeholder="작품을 200자 이내로 소개해 주세요" /></div>
             <div class="field field-wide"><label for="description">작품 설명 <span class="required" aria-hidden="true">*</span></label><textarea id="description" name="description" required placeholder="작품의 목적, 특징, 제작 과정을 적어주세요. 마크다운을 사용할 수 있어요."></textarea></div>
             <div class="field"><label for="tools">사용 도구 <span class="required" aria-hidden="true">*</span></label><input id="tools" name="tools" required placeholder="예: Codex, Supabase, Vercel" /><p class="hint">쉼표로 구분해 최대 10개까지 입력해 주세요.</p></div>
@@ -35,20 +35,19 @@
       </section>
     </main>
     <script>
-      const form=document.querySelector('#item-form');const message=document.querySelector('#message');const submitButton=form.querySelector('button[type="submit"]');const preview=document.querySelector('#image-preview');let previewUrl='';
+      const form=document.querySelector('#item-form');const message=document.querySelector('#message');const submitButton=form.querySelector('button[type="submit"]');const preview=document.querySelector('#image-preview');const defaultCoverImageUrl='https://vibe3-delta.vercel.app/og.png';let previewUrl='';
       const splitValues=(value)=>value.split(',').map((item)=>item.trim()).filter(Boolean);
       const validUrl=(value)=>{try{const url=new URL(value);return url.protocol==='http:'||url.protocol==='https:'}catch{return false}};
       const showError=(text)=>{message.textContent=text;message.className='message show error';message.scrollIntoView({behavior:'smooth',block:'center'})};
       const fieldNames={title:'제목',summary:'요약',description:'작품 설명',tools:'사용 도구',projectUrl:'작품 링크'};
-      form.coverImage.addEventListener('change',()=>{if(previewUrl)URL.revokeObjectURL(previewUrl);const file=form.coverImage.files[0];if(!file){preview.removeAttribute('src');preview.classList.remove('show');return}previewUrl=URL.createObjectURL(file);preview.src=previewUrl;preview.classList.add('show')});
+      form.coverImage.addEventListener('change',()=>{if(previewUrl)URL.revokeObjectURL(previewUrl);const file=form.coverImage.files[0];if(!file){preview.src='/og.png';preview.alt='기본 대표 이미지 미리보기';preview.classList.add('show');return}if(file.size>5*1024*1024){form.coverImage.value='';preview.src='/og.png';preview.alt='기본 대표 이미지 미리보기';showError('대표 이미지 파일은 5MB 이하로 첨부해 주세요.');return}previewUrl=URL.createObjectURL(file);preview.src=previewUrl;preview.alt='선택한 대표 이미지 미리보기';preview.classList.add('show')});
       VibeAuth.getSession().then((session)=>{if(!session){location.replace('/login?next=%2Fnew');return}document.querySelector('#protected-content').hidden=false});
       form.addEventListener('submit',async(event)=>{
         event.preventDefault();message.className='message';
         for(const [name,label] of Object.entries(fieldNames)){const field=form.elements[name];if(!field.value.trim()){showError(`${label} 항목을 입력해 주세요.`);field.focus();return}}
         const fields=form.elements;const tools=splitValues(fields.tools.value);const tags=splitValues(fields.tags.value);
-        const imageFile=fields.coverImage.files[0];if(!imageFile){showError('대표 이미지 파일을 첨부해 주세요.');fields.coverImage.focus();return}
-        const allowedTypes=['image/jpeg','image/png','image/webp','image/gif'];if(!allowedTypes.includes(imageFile.type)){showError('대표 이미지는 JPG, PNG, WebP 또는 GIF 파일만 첨부할 수 있어요.');fields.coverImage.focus();return}
-        if(imageFile.size>5*1024*1024){showError('대표 이미지 파일은 5MB 이하로 첨부해 주세요.');fields.coverImage.focus();return}
+        const imageFile=fields.coverImage.files[0];const allowedTypes=['image/jpeg','image/png','image/webp','image/gif'];if(imageFile&&!allowedTypes.includes(imageFile.type)){showError('대표 이미지는 JPG, PNG, WebP 또는 GIF 파일만 첨부할 수 있어요.');fields.coverImage.focus();return}
+        if(imageFile&&imageFile.size>5*1024*1024){showError('대표 이미지 파일은 5MB 이하로 첨부해 주세요.');fields.coverImage.focus();return}
         if(!tools.length){showError('사용 도구를 한 개 이상 입력해 주세요.');fields.tools.focus();return}
         if(tools.length>10){showError('사용 도구는 최대 10개까지 입력할 수 있어요.');fields.tools.focus();return}
         if(tags.length>5){showError('태그는 최대 5개까지 입력할 수 있어요.');fields.tags.focus();return}
@@ -58,11 +57,12 @@
         const session=await VibeAuth.getSession();if(!session){location.replace('/login?next=%2Fnew');return}
         submitButton.disabled=true;submitButton.textContent='저장 중…';
         try{
-          const extension=(imageFile.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const objectPath=`${session.user.id}/${crypto.randomUUID()}.${extension}`;
+          let coverImageUrl=defaultCoverImageUrl;
+          if(imageFile){const extension=(imageFile.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const objectPath=`${session.user.id}/${crypto.randomUUID()}.${extension}`;
           const uploadResponse=await fetch(`${config.url}/storage/v1/object/project-covers/${objectPath}`,{method:'POST',headers:{apikey:config.anonKey,Authorization:`Bearer ${session.access_token}`,'Content-Type':imageFile.type,'x-upsert':'false'},body:imageFile});
           const uploadResult=await uploadResponse.json().catch(()=>null);
           if(!uploadResponse.ok){if(uploadResponse.status===413)throw new Error('이미지 파일이 너무 커요. 5MB 이하 파일을 선택해 주세요.');throw new Error(uploadResult?.message||uploadResult?.error||'대표 이미지를 업로드하지 못했어요. 다른 파일로 다시 시도해 주세요.')}
-          const encodedPath=objectPath.split('/').map(encodeURIComponent).join('/');const coverImageUrl=`${config.url}/storage/v1/object/public/project-covers/${encodedPath}`;
+          const encodedPath=objectPath.split('/').map(encodeURIComponent).join('/');coverImageUrl=`${config.url}/storage/v1/object/public/project-covers/${encodedPath}`;}
           const item={author_id:session.user.id,title:fields.title.value.trim(),cover_image_url:coverImageUrl,summary:fields.summary.value.trim(),description:fields.description.value.trim(),tools,tags,project_url:fields.projectUrl.value.trim(),repository_url:fields.repositoryUrl.value.trim()||null,status:'published'};
           const response=await fetch(`${config.url}/rest/v1/items`,{method:'POST',headers:{apikey:config.anonKey,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(item)});
           const result=await response.json().catch(()=>null);
