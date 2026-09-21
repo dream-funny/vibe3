@@ -6,18 +6,19 @@
     <title>완성 작품 | 바이브코딩 공부</title>
     <meta name="description" content="함께 만든 바이브코딩 완성 작품을 둘러보세요." />
     <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/auth.css" />
     <style>
       :root{--bg:#fff8ee;--ink:#3d2921;--muted:#806b61;--brand:#b64f32;--soft:#f6dec1;--line:#ead4c2;--card:#fffdf9}
       *{box-sizing:border-box}body{margin:0;min-width:320px;color:var(--ink);background:var(--bg);font-family:Pretendard,"Noto Sans KR",system-ui,-apple-system,sans-serif}
       body:before,body:after{content:"";position:fixed;z-index:-1;border-radius:50%;pointer-events:none}body:before{width:min(46rem,82vw);height:min(46rem,82vw);top:-26rem;left:-15rem;background:radial-gradient(circle,#e99a705f,transparent 68%)}body:after{width:min(34rem,75vw);height:min(34rem,75vw);top:8rem;right:-17rem;background:radial-gradient(circle,#efc67366,transparent 68%)}
-      nav,main{width:min(100% - 40px,1152px);margin-inline:auto}nav{display:flex;align-items:center;justify-content:space-between;padding-block:24px}.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:750;text-decoration:none}.logo{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;color:white;background:var(--brand)}.back{color:var(--muted);font-size:14px;font-weight:650;text-decoration:none}
+      nav,main{width:min(100% - 40px,1152px);margin-inline:auto}nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:24px}.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:750;text-decoration:none}.logo{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;color:white;background:var(--brand)}.nav-actions{display:flex;align-items:center;gap:14px}.new-link{color:var(--brand);font-size:14px;font-weight:750;text-decoration:none}
       main{padding-block:44px 80px}.eyebrow{margin:0 0 12px;color:var(--brand);font-size:14px;font-weight:750}h1{margin:0 0 40px;font-size:clamp(38px,6vw,54px);letter-spacing:-.045em}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{display:flex;min-height:192px;flex-direction:column;padding:24px;border:1px solid var(--line);border-radius:22px;background:#fffdf9d9;box-shadow:0 5px 18px #74412a0d}h2{margin:0;font-size:20px;letter-spacing:-.02em}.meta{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:auto;color:var(--muted);font-size:14px}.state{display:flex;min-height:288px;align-items:center;justify-content:center;flex-direction:column;border:1px dashed var(--line);border-radius:24px;background:#fffdf9bf;text-align:center}.state p{margin:8px 0 0;color:var(--muted);font-size:14px}.loader{width:34px;height:34px;margin-bottom:18px;border:3px solid var(--soft);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite}.hidden{display:none}@keyframes spin{to{transform:rotate(360deg)}}
-      @media(max-width:760px){nav,main{width:min(100% - 32px,1152px)}main{padding-top:38px}.grid{grid-template-columns:1fr}.card{min-height:164px}}@media(prefers-reduced-motion:reduce){.loader{animation:none}}
+      @media(max-width:760px){nav,main{width:min(100% - 32px,1152px)}nav{align-items:flex-start}.brand span:last-child{display:none}.nav-actions{gap:8px}.new-link{white-space:nowrap}main{padding-top:38px}.grid{grid-template-columns:1fr}.card{min-height:164px}}@media(prefers-reduced-motion:reduce){.loader{animation:none}}
     </style>
     <script src="/supabase-config.js"></script>
   </head>
   <body>
-    <nav><a class="brand" href="/"><span class="logo" aria-hidden="true">✦</span><span>바이브코딩 공부</span></a><a class="back" href="/">← 처음으로</a></nav>
+    <nav><a class="brand" href="/"><span class="logo" aria-hidden="true">✦</span><span>바이브코딩 공부</span></a><div class="nav-actions"><a class="new-link" href="/new">작품 등록</a><div class="auth-nav" data-auth-nav aria-live="polite"></div></div></nav>
     <main>
       <p class="eyebrow">함께 만든 결과물</p><h1>완성 작품</h1>
       <div id="loading" class="state" aria-live="polite"><span class="loader" aria-hidden="true"></span><strong>작품을 불러오는 중이에요</strong></div>
@@ -25,6 +26,7 @@
       <div id="error" class="state hidden"><strong>목록을 불러오지 못했어요</strong><p id="error-message">잠시 후 다시 시도해 주세요.</p></div>
       <div id="items" class="grid hidden"></div>
     </main>
+    <script src="/auth.js"></script>
     <script>
       const loading=document.querySelector('#loading');const empty=document.querySelector('#empty');const error=document.querySelector('#error');const grid=document.querySelector('#items');
       const show=(element)=>{[loading,empty,error,grid].forEach((item)=>item.classList.add('hidden'));element.classList.remove('hidden')};

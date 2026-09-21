@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로그인 | 바이브코딩 공부</title>
+    <meta name="description" content="바이브코딩 공부에 로그인하세요." />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/auth.css" />
+    <link rel="stylesheet" href="/account.css" />
+    <script src="/supabase-config.js"></script>
+    <script src="/auth.js"></script>
+  </head>
+  <body>
+    <nav><a class="brand" href="/"><span class="logo" aria-hidden="true">✦</span><span>바이브코딩 공부</span></a><div class="auth-nav" data-auth-nav aria-live="polite"></div></nav>
+    <main>
+      <section class="panel" aria-labelledby="page-title">
+        <p class="eyebrow">다시 만나서 반가워요</p>
+        <h1 id="page-title">로그인</h1>
+        <p class="intro">이메일과 비밀번호를 입력해 내 작품을 등록해보세요.</p>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+        <form id="login-form">
+          <div class="field"><label for="email">이메일</label><input id="email" name="email" type="email" autocomplete="email" required placeholder="name@example.com" /></div>
+          <div class="field"><label for="password">비밀번호</label><input id="password" name="password" type="password" autocomplete="current-password" required minlength="6" placeholder="비밀번호 입력" /></div>
+          <button class="primary" type="submit">로그인</button>
+        </form>
+        <p class="switch">아직 계정이 없나요? <a id="signup-link" href="/signup">회원가입</a></p>
+      </section>
+    </main>
+    <script>
+      const params=new URLSearchParams(location.search);const next=VibeAuth.safeNext(params.get('next'));const message=document.querySelector('#message');const form=document.querySelector('#login-form');const button=form.querySelector('button');
+      document.querySelector('#signup-link').href=`/signup?next=${encodeURIComponent(next)}`;
+      function show(text,type){message.textContent=text;message.className=`message show ${type}`}
+      if(params.get('confirmed'))show('이메일 확인이 완료됐어요. 로그인해 주세요.','success');
+      VibeAuth.getSession().then((session)=>{if(session)location.replace(next)});
+      form.addEventListener('submit',async(event)=>{event.preventDefault();button.disabled=true;button.textContent='로그인 중…';message.className='message';try{await VibeAuth.signIn(form.email.value.trim(),form.password.value);location.replace(next)}catch(error){const raw=String(error.message||'');const text=raw.toLowerCase().includes('invalid login')?'이메일 또는 비밀번호를 확인해 주세요.':raw.toLowerCase().includes('email not confirmed')?'받은 이메일에서 가입 확인을 먼저 완료해 주세요.':'로그인하지 못했어요. 잠시 후 다시 시도해 주세요.';show(text,'error');button.disabled=false;button.textContent='로그인'}});
+    </script>
+  </body>
+</html>

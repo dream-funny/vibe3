@@ -1,0 +1,6 @@
+.auth-nav{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:150px}
+.auth-link,.auth-button{border:0;font:inherit;font-size:14px;font-weight:700;text-decoration:none;cursor:pointer}
+.auth-link{padding:9px 4px;color:var(--muted);background:transparent}.auth-link:hover{color:var(--ink)}
+.auth-button{padding:10px 15px;border-radius:999px;color:#fff;background:var(--brand);box-shadow:0 5px 14px #b64f3228}
+.auth-email{max-width:220px;overflow:hidden;color:var(--muted);font-size:14px;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:620px){.auth-nav{min-width:auto}.auth-email{max-width:120px}.auth-button{padding:9px 12px}}

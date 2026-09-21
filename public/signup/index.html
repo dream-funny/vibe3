@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>회원가입 | 바이브코딩 공부</title>
+    <meta name="description" content="바이브코딩 공부 계정을 만드세요." />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="stylesheet" href="/auth.css" />
+    <link rel="stylesheet" href="/account.css" />
+    <script src="/supabase-config.js"></script>
+    <script src="/auth.js"></script>
+  </head>
+  <body>
+    <nav><a class="brand" href="/"><span class="logo" aria-hidden="true">✦</span><span>바이브코딩 공부</span></a><div class="auth-nav" data-auth-nav aria-live="polite"></div></nav>
+    <main>
+      <section class="panel" aria-labelledby="page-title">
+        <p class="eyebrow">함께 만들고 배워요</p>
+        <h1 id="page-title">회원가입</h1>
+        <p class="intro">이메일로 계정을 만들고 완성한 바이브코딩 작품을 공유하세요.</p>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+        <form id="signup-form">
+          <div class="field"><label for="email">이메일</label><input id="email" name="email" type="email" autocomplete="email" required placeholder="name@example.com" /></div>
+          <div class="field"><label for="password">비밀번호</label><input id="password" name="password" type="password" autocomplete="new-password" required minlength="6" placeholder="6자 이상 입력" /><p class="hint">안전한 비밀번호를 6자 이상 입력해 주세요.</p></div>
+          <div class="field"><label for="password-confirm">비밀번호 확인</label><input id="password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" required minlength="6" placeholder="비밀번호 다시 입력" /></div>
+          <button class="primary" type="submit">회원가입</button>
+        </form>
+        <p class="switch">이미 계정이 있나요? <a id="login-link" href="/login">로그인</a></p>
+      </section>
+    </main>
+    <script>
+      const params=new URLSearchParams(location.search);const next=VibeAuth.safeNext(params.get('next'));const message=document.querySelector('#message');const form=document.querySelector('#signup-form');const button=form.querySelector('button');
+      document.querySelector('#login-link').href=`/login?next=${encodeURIComponent(next)}`;
+      function show(text,type){message.textContent=text;message.className=`message show ${type}`}
+      VibeAuth.getSession().then((session)=>{if(session)location.replace(next)});
+      form.addEventListener('submit',async(event)=>{event.preventDefault();if(form.password.value!==form.passwordConfirm.value){show('비밀번호가 서로 같지 않아요.','error');return}button.disabled=true;button.textContent='가입 중…';message.className='message';try{const data=await VibeAuth.signUp(form.email.value.trim(),form.password.value);if(data.access_token){location.replace(next);return}show('확인 이메일을 보냈어요. 이메일의 링크를 누른 뒤 로그인해 주세요.','success');form.reset();button.textContent='이메일을 확인해 주세요'}catch(error){const raw=String(error.message||'');const text=raw.toLowerCase().includes('already registered')?'이미 가입된 이메일이에요. 로그인해 주세요.':raw.toLowerCase().includes('password')?'비밀번호는 6자 이상으로 입력해 주세요.':'회원가입하지 못했어요. 입력 내용을 확인해 주세요.';show(text,'error');button.disabled=false;button.textContent='회원가입'}});
+    </script>
+  </body>
+</html>
