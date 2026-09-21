@@ -199,7 +199,7 @@ export default function ListPage() {
               return (
                 <Card key={item.id} className="group min-w-0 overflow-hidden border border-border/70 bg-card/85 shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-md">
                   {imageUrl ? (
-                    <a href={projectUrl || undefined} target={projectUrl ? '_blank' : undefined} rel={projectUrl ? 'noopener noreferrer' : undefined} className="block aspect-[16/10] overflow-hidden bg-secondary" aria-label={projectUrl ? `${item.title} 작품 열기` : undefined}>
+                    <a href={`/item/?id=${encodeURIComponent(item.id)}`} className="block aspect-[16/10] overflow-hidden bg-secondary" aria-label={`${item.title} 상세 보기`}>
                       <img src={imageUrl} alt={`${item.title} 대표 이미지`} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]" />
                     </a>
                   ) : (
@@ -207,7 +207,7 @@ export default function ListPage() {
                   )}
                   <CardHeader>
                     <CardTitle className="text-xl font-bold tracking-tight">
-                      {projectUrl ? <a href={projectUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{item.title}</a> : item.title}
+                      <a href={`/item/?id=${encodeURIComponent(item.id)}`} className="hover:underline">{item.title}</a>
                     </CardTitle>
                     {item.summary && <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{item.summary}</p>}
                     {tags.length > 0 && <div className="flex flex-wrap gap-1.5">{tags.slice(0, 5).map((tag) => <span key={tag} className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary">#{tag.trim()}</span>)}</div>}
@@ -217,7 +217,8 @@ export default function ListPage() {
                       <span className="flex items-center gap-1.5"><MapPin className="size-4 text-primary" aria-hidden="true" />{item.region || '지역 미정'}</span>
                       <time className="flex items-center gap-1.5" dateTime={item.created_at}><CalendarDays className="size-4 text-primary" aria-hidden="true" />{dateFormatter.format(new Date(item.created_at))}</time>
                     </div>
-                    {projectUrl ? <a href={projectUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground hover:opacity-90">작품 보기 <ExternalLink className="size-4" aria-hidden="true" /></a> : <span className="block rounded-xl bg-secondary px-4 py-3 text-center">등록된 작품 링크가 없어요</span>}
+                    <a href={`/item/?id=${encodeURIComponent(item.id)}`} className="flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground hover:opacity-90">좋아요·댓글 보기</a>
+                    {projectUrl && <a href={projectUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 font-semibold text-primary hover:underline">작품 사이트 열기 <ExternalLink className="size-4" aria-hidden="true" /></a>}
                   </CardContent>
                 </Card>
               );

@@ -153,3 +153,83 @@ using (
   bucket_id = 'project-covers'
   and (storage.foldername(name))[1] = auth.uid()::text
 );
+
+-- 공개 회원 프로필, 좋아요, 댓글, 팔로우
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  display_name varchar(50) not null check (char_length(trim(display_name)) between 1 and 50),
+  created_at timestamptz not null default now()
+);
+
+create or replace function public.create_profile_for_user()
+returns trigger language plpgsql security definer set search_path = pg_catalog, public as $$
+begin
+  insert into public.profiles (user_id, display_name)
+  values (new.id, coalesce(nullif(split_part(new.email, '@', 1), ''), '회원'))
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists create_profile_after_signup on auth.users;
+create trigger create_profile_after_signup after insert on auth.users
+for each row execute function public.create_profile_for_user();
+
+insert into public.profiles (user_id, display_name)
+select id, coalesce(nullif(split_part(email, '@', 1), ''), '회원') from auth.users
+on conflict (user_id) do nothing;
+
+create table if not exists public.item_likes (
+  item_id uuid not null references public.items (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (item_id, user_id)
+);
+
+create table if not exists public.item_comments (
+  id uuid primary key default gen_random_uuid(),
+  item_id uuid not null references public.items (id) on delete cascade,
+  author_id uuid not null references public.profiles (user_id) on delete cascade,
+  body varchar(500) not null check (char_length(trim(body)) between 1 and 500),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.follows (
+  follower_id uuid not null references auth.users (id) on delete cascade,
+  following_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (follower_id, following_id),
+  check (follower_id <> following_id)
+);
+
+create index if not exists item_comments_item_created_idx on public.item_comments (item_id, created_at);
+create index if not exists follows_following_idx on public.follows (following_id);
+
+alter table public.profiles enable row level security;
+alter table public.item_likes enable row level security;
+alter table public.item_comments enable row level security;
+alter table public.follows enable row level security;
+
+drop policy if exists "profiles_are_public" on public.profiles;
+drop policy if exists "likes_are_public" on public.item_likes;
+drop policy if exists "users_like_as_themselves" on public.item_likes;
+drop policy if exists "users_remove_own_likes" on public.item_likes;
+drop policy if exists "comments_are_public" on public.item_comments;
+drop policy if exists "users_comment_as_themselves" on public.item_comments;
+drop policy if exists "users_delete_own_comments" on public.item_comments;
+drop policy if exists "follows_are_public" on public.follows;
+drop policy if exists "users_follow_as_themselves" on public.follows;
+drop policy if exists "users_remove_own_follows" on public.follows;
+create policy "profiles_are_public" on public.profiles for select to anon, authenticated using (true);
+create policy "likes_are_public" on public.item_likes for select to anon, authenticated using (true);
+create policy "users_like_as_themselves" on public.item_likes for insert to authenticated with check (user_id = auth.uid());
+create policy "users_remove_own_likes" on public.item_likes for delete to authenticated using (user_id = auth.uid());
+create policy "comments_are_public" on public.item_comments for select to anon, authenticated using (true);
+create policy "users_comment_as_themselves" on public.item_comments for insert to authenticated with check (author_id = auth.uid());
+create policy "users_delete_own_comments" on public.item_comments for delete to authenticated using (author_id = auth.uid());
+create policy "follows_are_public" on public.follows for select to anon, authenticated using (true);
+create policy "users_follow_as_themselves" on public.follows for insert to authenticated with check (follower_id = auth.uid());
+create policy "users_remove_own_follows" on public.follows for delete to authenticated using (follower_id = auth.uid());
+
+grant select on public.profiles, public.item_likes, public.item_comments, public.follows to anon, authenticated;
+grant insert, delete on public.item_likes, public.item_comments, public.follows to authenticated;
