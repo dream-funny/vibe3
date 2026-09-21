@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CalendarDays, ChevronLeft, ExternalLink, MapPin, Sparkles } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ExternalLink, MapPin, Search, Sparkles, X } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
@@ -34,6 +34,8 @@ const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
   day: 'numeric',
 });
 
+const regions = ['서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '온라인', '지역 미정'];
+
 function LoadingCards() {
   return (
     <div aria-label="작품을 불러오는 중" aria-live="polite" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -56,6 +58,23 @@ export default function ListPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [region, setRegion] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setQuery(params.get('q') || '');
+    setRegion(params.get('region') || '');
+  }, []);
+
+  function updateFilters(nextQuery: string, nextRegion: string) {
+    setQuery(nextQuery);
+    setRegion(nextRegion);
+    const params = new URLSearchParams();
+    if (nextQuery.trim()) params.set('q', nextQuery.trim());
+    if (nextRegion) params.set('region', nextRegion);
+    window.history.replaceState(null, '', `${window.location.pathname}${params.size ? `?${params}` : ''}`);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -98,6 +117,13 @@ export default function ListPage() {
     return () => controller.abort();
   }, []);
 
+  const filteredItems = items.filter((item) => {
+    const matchesTitle = !query.trim() || item.title.toLocaleLowerCase('ko-KR').includes(query.trim().toLocaleLowerCase('ko-KR'));
+    const itemRegion = item.region || '지역 미정';
+    const matchesRegion = !region || (region === '지역 미정' ? itemRegion === '지역 미정' : itemRegion.startsWith(region));
+    return matchesTitle && matchesRegion;
+  });
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div aria-hidden="true" className="warm-orb warm-orb-one" />
@@ -122,6 +148,22 @@ export default function ListPage() {
           <h1 className="text-4xl font-black tracking-[-0.045em] sm:text-5xl">완성 작품</h1>
         </header>
 
+        <form role="search" className="mb-7 grid gap-2.5 rounded-2xl border border-border/80 bg-card/85 p-3.5 shadow-sm sm:grid-cols-[minmax(0,1fr)_13rem_auto]" onSubmit={(event) => event.preventDefault()}>
+          <label className="relative block">
+            <span className="sr-only">제목 검색</span>
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <input type="search" value={query} onChange={(event) => updateFilters(event.target.value, region)} placeholder="작품 제목을 검색해 보세요" className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/10" />
+          </label>
+          <label>
+            <span className="sr-only">지역</span>
+            <select value={region} onChange={(event) => updateFilters(query, event.target.value)} className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-3 focus:ring-primary/10">
+              <option value="">모든 지역</option>
+              {regions.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+          <button type="button" onClick={() => updateFilters('', '')} disabled={!query && !region} className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-primary hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-45"><X className="size-4" aria-hidden="true" />조건 지우기</button>
+        </form>
+
         {isLoading ? (
           <LoadingCards />
         ) : error ? (
@@ -140,9 +182,17 @@ export default function ListPage() {
               <EmptyDescription>첫 번째 바이브코딩 작품을 기다리고 있어요.</EmptyDescription>
             </EmptyHeader>
           </Empty>
+        ) : filteredItems.length === 0 ? (
+          <Empty className="min-h-72 border border-border bg-card/75 shadow-sm">
+            <EmptyHeader>
+              <EmptyMedia variant="icon"><Search aria-hidden="true" /></EmptyMedia>
+              <EmptyTitle>검색 결과가 없어요</EmptyTitle>
+              <EmptyDescription>검색어나 지역 조건을 바꿔보세요.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => {
+            {filteredItems.map((item) => {
               const imageUrl = safeHttpUrl(item.cover_image_url);
               const projectUrl = safeHttpUrl(item.project_url);
               const tags = Array.isArray(item.tags) ? item.tags : String(item.tags || '').split(',').filter(Boolean);
