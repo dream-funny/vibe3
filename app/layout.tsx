@@ -39,6 +39,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script src="/supabase-config.js" />
         {children}
       </body>
     </html>

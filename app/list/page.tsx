@@ -59,8 +59,11 @@ export default function ListPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const browserConfig = (window as typeof window & {
+      __SUPABASE_CONFIG__?: { url?: string; anonKey?: string };
+    }).__SUPABASE_CONFIG__;
+    const supabaseUrl = browserConfig?.url || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = browserConfig?.anonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     async function loadItems() {
       if (!supabaseUrl || !supabaseKey) {
