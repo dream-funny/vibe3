@@ -112,3 +112,44 @@ using (author_id = auth.uid());
 grant select on table public.items to anon, authenticated;
 grant insert, update, delete on table public.items to authenticated;
 revoke insert, update, delete on table public.items from anon;
+
+-- 작품 대표 이미지용 공개 버킷입니다. 파일은 사용자 ID별 폴더에 저장합니다.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'project-covers',
+  'project-covers',
+  true,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+on conflict (id) do update set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "project_covers_are_public" on storage.objects;
+create policy "project_covers_are_public"
+on storage.objects
+for select
+to anon, authenticated
+using (bucket_id = 'project-covers');
+
+drop policy if exists "users_can_upload_own_project_covers" on storage.objects;
+create policy "users_can_upload_own_project_covers"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'project-covers'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+drop policy if exists "users_can_delete_own_project_covers" on storage.objects;
+create policy "users_can_delete_own_project_covers"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'project-covers'
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
