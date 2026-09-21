@@ -14,15 +14,54 @@
   <body>
     <nav><a class="brand" href="/"><span class="logo" aria-hidden="true">✦</span><span>바이브코딩 공부</span></a><div class="auth-nav" data-auth-nav aria-live="polite"></div></nav>
     <main>
-      <section id="protected-content" class="panel" aria-labelledby="page-title" hidden>
+      <section id="protected-content" class="panel form-panel" aria-labelledby="page-title" hidden>
         <p class="eyebrow">나의 결과물 공유하기</p>
         <h1 id="page-title">새 작품 등록</h1>
-        <p class="intro">로그인이 확인됐어요. 작품 등록 양식은 다음 단계에서 이어서 만들 수 있어요.</p>
-        <a class="auth-button" href="/list">완성 작품 둘러보기</a>
+        <p class="intro">완성한 작품과 배운 점을 적어주세요. 등록 즉시 모든 사람에게 공개됩니다.</p>
+        <p id="message" class="message" role="alert" aria-live="assertive"></p>
+        <form id="item-form" novalidate>
+          <div class="form-grid">
+            <div class="field field-wide"><label for="title">제목 <span class="required" aria-hidden="true">*</span></label><input id="title" name="title" maxlength="100" required placeholder="작품 이름을 입력해 주세요" /></div>
+            <div class="field field-wide"><label for="cover-image-url">대표 이미지 URL <span class="required" aria-hidden="true">*</span></label><input id="cover-image-url" name="coverImageUrl" type="url" required placeholder="https://example.com/image.jpg" /></div>
+            <div class="field field-wide"><label for="summary">요약 <span class="required" aria-hidden="true">*</span></label><input id="summary" name="summary" maxlength="200" required placeholder="작품을 200자 이내로 소개해 주세요" /></div>
+            <div class="field field-wide"><label for="description">작품 설명 <span class="required" aria-hidden="true">*</span></label><textarea id="description" name="description" required placeholder="작품의 목적, 특징, 제작 과정을 적어주세요. 마크다운을 사용할 수 있어요."></textarea></div>
+            <div class="field"><label for="tools">사용 도구 <span class="required" aria-hidden="true">*</span></label><input id="tools" name="tools" required placeholder="예: Codex, Supabase, Vercel" /><p class="hint">쉼표로 구분해 최대 10개까지 입력해 주세요.</p></div>
+            <div class="field"><label for="tags">태그</label><input id="tags" name="tags" placeholder="예: 커뮤니티, 공부" /><p class="hint">쉼표로 구분해 최대 5개까지 입력할 수 있어요.</p></div>
+            <div class="field"><label for="project-url">작품 링크 <span class="required" aria-hidden="true">*</span></label><input id="project-url" name="projectUrl" type="url" required placeholder="https://my-project.example" /></div>
+            <div class="field"><label for="repository-url">저장소 링크</label><input id="repository-url" name="repositoryUrl" type="url" placeholder="https://github.com/user/project" /></div>
+          </div>
+          <div class="form-actions"><a class="cancel" href="/list">취소</a><button class="primary" type="submit">작품 올리기</button></div>
+        </form>
       </section>
     </main>
     <script>
+      const form=document.querySelector('#item-form');const message=document.querySelector('#message');const submitButton=form.querySelector('button[type="submit"]');
+      const splitValues=(value)=>value.split(',').map((item)=>item.trim()).filter(Boolean);
+      const validUrl=(value)=>{try{const url=new URL(value);return url.protocol==='http:'||url.protocol==='https:'}catch{return false}};
+      const showError=(text)=>{message.textContent=text;message.className='message show error';message.scrollIntoView({behavior:'smooth',block:'center'})};
+      const fieldNames={title:'제목',coverImageUrl:'대표 이미지 URL',summary:'요약',description:'작품 설명',tools:'사용 도구',projectUrl:'작품 링크'};
       VibeAuth.getSession().then((session)=>{if(!session){location.replace('/login?next=%2Fnew');return}document.querySelector('#protected-content').hidden=false});
+      form.addEventListener('submit',async(event)=>{
+        event.preventDefault();message.className='message';
+        for(const [name,label] of Object.entries(fieldNames)){const field=form.elements[name];if(!field.value.trim()){showError(`${label} 항목을 입력해 주세요.`);field.focus();return}}
+        const fields=form.elements;const tools=splitValues(fields.tools.value);const tags=splitValues(fields.tags.value);
+        if(!tools.length){showError('사용 도구를 한 개 이상 입력해 주세요.');fields.tools.focus();return}
+        if(tools.length>10){showError('사용 도구는 최대 10개까지 입력할 수 있어요.');fields.tools.focus();return}
+        if(tags.length>5){showError('태그는 최대 5개까지 입력할 수 있어요.');fields.tags.focus();return}
+        if(!validUrl(fields.coverImageUrl.value.trim())){showError('대표 이미지 URL을 https:// 또는 http://로 시작하는 올바른 주소로 입력해 주세요.');fields.coverImageUrl.focus();return}
+        if(!validUrl(fields.projectUrl.value.trim())){showError('작품 링크를 https:// 또는 http://로 시작하는 올바른 주소로 입력해 주세요.');fields.projectUrl.focus();return}
+        if(fields.repositoryUrl.value.trim()&&!validUrl(fields.repositoryUrl.value.trim())){showError('저장소 링크를 https:// 또는 http://로 시작하는 올바른 주소로 입력해 주세요.');fields.repositoryUrl.focus();return}
+        const config=window.__SUPABASE_CONFIG__||{};if(!config.url||!config.anonKey){showError('저장 연결 설정이 필요해요. 관리자에게 문의해 주세요.');return}
+        const session=await VibeAuth.getSession();if(!session){location.replace('/login?next=%2Fnew');return}
+        const item={author_id:session.user.id,title:fields.title.value.trim(),cover_image_url:fields.coverImageUrl.value.trim(),summary:fields.summary.value.trim(),description:fields.description.value.trim(),tools,tags,project_url:fields.projectUrl.value.trim(),repository_url:fields.repositoryUrl.value.trim()||null,status:'published'};
+        submitButton.disabled=true;submitButton.textContent='저장 중…';
+        try{
+          const response=await fetch(`${config.url}/rest/v1/items`,{method:'POST',headers:{apikey:config.anonKey,Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(item)});
+          const result=await response.json().catch(()=>null);
+          if(!response.ok){const detail=result?.message||result?.details||'';if(response.status===401)throw new Error('로그인이 만료됐어요. 다시 로그인해 주세요.');if(result?.code==='42501')throw new Error('이 작품을 저장할 권한이 없어요. 다시 로그인해 주세요.');if(result?.code==='23514')throw new Error('입력한 글자 수나 항목 개수를 확인해 주세요.');throw new Error(detail||'작품을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.')}
+          location.href='/list';
+        }catch(error){showError(error.message||'작품을 저장하지 못했어요. 인터넷 연결을 확인해 주세요.');submitButton.disabled=false;submitButton.textContent='작품 올리기'}
+      });
     </script>
   </body>
 </html>
